@@ -30,8 +30,54 @@ PHARO_IMAGES=("Pharo111" "Pharo112" "Pharo12" "Pharo13" "Pharo14" "Pharo20")
 SQUEAK_IMAGES_STACK_VM=("Squeak41")
 SQUEAK_IMAGES_COG_VM=("Squeak42" "Squeak43" "Squeak44")
 
+# help function
+function display_help() {
+	echo "$(basename $0) [-ms]"
+	echo " -m serialize / materialize all objects to / from all images (tests will not be run)"
+	echo " -s load latest stable (instead of bleeding edge)"
+}
 
-while getopts ":m:s:?" OPT ; do
+function prepare_final_script(){
+	IMAGE_NAME=$1
+	FINAL_SCRIPT="${FINAL_SCRIPT_BASE}_${IMAGE_NAME}.st"
+	if [ $LOAD_STABLE = 1 ]; then
+		cat "$LOADER_SCRIPT_STABLE" > "$FINAL_SCRIPT"
+	else
+		cat "$LOADER_SCRIPT_BLEEDING_EDGE" > "$FINAL_SCRIPT"
+	fi
+	
+	if [ $SERIALIZE_MATERIALIZE = 0 ]; then
+		cat "$TEST_RUNNER_SCRIPT" >> "$FINAL_SCRIPT"
+	else		
+		echo "\n" >> "$FINAL_SCRIPT\c"
+		
+		echo "Smalltalk at: #FuelFormatTestScriptsPath put: '$IMAGE_PATH'." >> "$FINAL_SCRIPT"
+		echo "\n" >> "$FINAL_SCRIPT\c"
+		
+		echo "Smalltalk at: #FuelFormatTestImageNames put: #(" >> "$FINAL_SCRIPT"
+		for image in ${PHARO_IMAGES[@]}; do
+			echo "'${image}' " >> "$FINAL_SCRIPT"
+		done
+		for image in ${SQUEAK_IMAGES_STACK_VM[@]}; do
+			echo "'${image}' " >> "$FINAL_SCRIPT"
+		done
+		for image in ${SQUEAK_IMAGES_COG_VM[@]}; do
+			echo "'${image}' " >> "$FINAL_SCRIPT"
+		done
+		echo ").\n" >> "$FINAL_SCRIPT\c"
+		
+		echo "Smalltalk at: #FuelFormatTestFilename put: '$IMAGE_NAME.fuel'." >> "$FINAL_SCRIPT"
+		echo "\n" >> "$FINAL_SCRIPT\c"
+		
+		cat "$SERIALIZATION_SCRIPT" >> "$FINAL_SCRIPT"
+		echo "\n" >> "$FINAL_SCRIPT\c"
+		
+		cat "$MATERIALIZATION_SCRIPT" >> "$FINAL_SCRIPT"
+	fi
+}
+
+
+while getopts ":msh?" OPT ; do
 	case "$OPT" in
 
 		# serialize / materialize objects
@@ -89,48 +135,4 @@ done
 
 exit 0
 
-# help function
-function display_help() {
-	echo "$(basename $0) [-ms]"
-	echo " -m serialize / materialize all objects to / from all images (tests will not be run)"
-	echo " -s load latest stable (instead of bleeding edge)"
-}
 
-function prepare_final_script(){
-	IMAGE_NAME=$1
-	FINAL_SCRIPT="${FINAL_SCRIPT_BASE}_${IMAGE_NAME}.st"
-	if [ $LOAD_STABLE = 1 ]; then
-		cat "$LOADER_SCRIPT_STABLE" > "$FINAL_SCRIPT"
-	else
-		cat "$LOADER_SCRIPT_BLEEDING_EDGE" > "$FINAL_SCRIPT"
-	fi
-	
-	if [ $SERIALIZE_MATERIALIZE = 0 ]; then
-		cat "$TEST_RUNNER_SCRIPT" >> "$FINAL_SCRIPT"
-	else		
-		echo "\n" >> "$FINAL_SCRIPT\c"
-		
-		echo "Smalltalk at: #FuelFormatTestScriptsPath put: '$IMAGE_PATH'." >> "$FINAL_SCRIPT"
-		echo "\n" >> "$FINAL_SCRIPT\c"
-		
-		echo "Smalltalk at: #FuelFormatTestImageNames put: #(" >> "$FINAL_SCRIPT"
-		for image in ${PHARO_IMAGES[@]}; do
-			echo "'${image}' " >> "$FINAL_SCRIPT"
-		done
-		for image in ${SQUEAK_IMAGES_STACK_VM[@]}; do
-			echo "'${image}' " >> "$FINAL_SCRIPT"
-		done
-		for image in ${SQUEAK_IMAGES_COG_VM[@]}; do
-			echo "'${image}' " >> "$FINAL_SCRIPT"
-		done
-		echo ").\n" >> "$FINAL_SCRIPT\c"
-		
-		echo "Smalltalk at: #FuelFormatTestFilename put: '$IMAGE_NAME.fuel'." >> "$FINAL_SCRIPT"
-		echo "\n" >> "$FINAL_SCRIPT\c"
-		
-		cat "$SERIALIZATION_SCRIPT" >> "$FINAL_SCRIPT"
-		echo "\n" >> "$FINAL_SCRIPT\c"
-		
-		cat "$MATERIALIZATION_SCRIPT" >> "$FINAL_SCRIPT"
-	fi
-}
