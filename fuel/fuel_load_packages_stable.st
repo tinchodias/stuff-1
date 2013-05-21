@@ -4,6 +4,8 @@
 	package: 'ConfigurationOfFuel';
 	load.
 (Smalltalk at: #ConfigurationOfFuel) load ] on: Error do: [
-	((Smalltalk at: #Installer) fromUrl: 'http://ss3.gemstone.com/ss/Fuel/')
-		install: 'ConfigurationOfFuel-MaxLeske.202.mcz'.
-		(Smalltalk at: #ConfigurationOfFuel) load ].
+	(Smalltalk at: #Installer) monticello
+		http: 'http://ss3.gemstone.com/ss/';
+		project: 'Fuel';
+		install: 'ConfigurationOfFuel'.
+	(Smalltalk at: #ConfigurationOfFuel) load ].
