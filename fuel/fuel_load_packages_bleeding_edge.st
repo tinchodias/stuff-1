@@ -1,11 +1,12 @@
 "load development"
 [ (Smalltalk at: #Gofer) new
-	url: 'http://ss3.gemstone.com/ss/Fuel';
+	url: 'http://smalltalkhub.com/mc/Pharo/Fuel/main';
 	package: 'ConfigurationOfFuel';
 	load.
-(Smalltalk at: #ConfigurationOfFuel) loadBleedingEdge ] on: Error do: [
-	(Smalltalk at: #Installer) monticello
-		http: 'http://ss3.gemstone.com/ss/';
-		project: 'Fuel';
-		install: 'ConfigurationOfFuel'.
-	(Smalltalk at: #ConfigurationOfFuel) loadBleedingEdge ].
+ (Smalltalk at: #ConfigurationOfFuel) loadBleedingEdge ] on: Error do: [
+	((Smalltalk at: #Installer) monticello http: 'http://smalltalkhub.com/mc/Pharo/Fuel/') 
+		project: 'main';
+		package: 'ConfigurationOfFuel';
+		install.
+		(Smalltalk at: #ConfigurationOfFuel) loadBleedingEdge ].
+		

@@ -20,3 +20,4 @@ Smalltalk globals
 			
 		imageNames do: [ :imageName |
 			FLMaterializer materializeFromFileNamed: (sciptsDirectory / imageName) pathString ] ].
+			

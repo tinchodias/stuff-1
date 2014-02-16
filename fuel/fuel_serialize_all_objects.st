@@ -50,3 +50,4 @@ Smalltalk globals
 				FLSerializer newDefault
 					analyzer: analyzer;
 					serialize: classes -> objects on: stream binary ] ].
+					
