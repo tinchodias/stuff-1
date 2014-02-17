@@ -61,15 +61,16 @@ EOF
 
     # parse the file name of the most recent build from the ftp ls output
     IMAGE_FILE_NAME=`cat ftp_ls.log | grep -E "Squeak[0-9]\.[0-9]\-[0-9]+\.zip" | sed -E 's/.*(Squeak.*\.zip)/\1/p' | sort | tail -1`
-    # parse the file extension from the filename (not necessary at the moment)
-    #IMAGE_FILE_EXTENSION=`echo $IMAGE_FILE_NAME | sed -E 's/.*\.([a-zA-Z0-9]+)/\1/p'`
+    # parse the file extension from the filename
+    IMAGE_FILE_EXTENSION=`echo $IMAGE_FILE_NAME | sed -E 's/.*\.([a-zA-Z0-9]+)/\1/p'`
+    IMAGE_BASE_NAME=`echo $IMAGE_FILE_NAME | sed -E 's/(.*)\.${IMAGE_FILE_EXTENSION}/\1/p'`
     rm -f ftp_ls.log
 
     echo "downloading image: ${IMAGE_DIRECTORY_URL}${IMAGE_FILE_NAME}"
     wget --quiet "${IMAGE_DIRECTORY_URL}${IMAGE_FILE_NAME}"
     unzip -j "${IMAGE_FILE_NAME}"
-    mv "${IMAGE_FILE_NAME}.image" "${JOB_NAME}.image"
-    mv "${IMAGE_FILE_NAME}.changes" "${JOB_NAME}.changes"
+    mv "${IMAGE_BASE_NAME}.image" "${JOB_NAME}.image"
+    mv "${IMAGE_BASE_NAME}.changes" "${JOB_NAME}.changes"
     
     # generate the script to build image and run tests
     echo "generating init_script.st"
