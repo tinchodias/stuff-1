@@ -69,6 +69,9 @@ EOF
     echo "downloading image: ${IMAGE_DIRECTORY_URL}${IMAGE_FILE_NAME}"
     wget --quiet "${IMAGE_DIRECTORY_URL}${IMAGE_FILE_NAME}"
     unzip -j "${IMAGE_FILE_NAME}"
+    echo "renaming files: "
+    echo "mv ${IMAGE_BASE_NAME}.image ${JOB_NAME}.image"
+    echo "mv ${IMAGE_BASE_NAME}.changes ${JOB_NAME}.changes"
     mv "${IMAGE_BASE_NAME}.image" "${JOB_NAME}.image"
     mv "${IMAGE_BASE_NAME}.changes" "${JOB_NAME}.changes"
     
