@@ -62,8 +62,8 @@ EOF
     # parse the file name of the most recent build from the ftp ls output
     IMAGE_FILE_NAME=`cat ftp_ls.log | grep -E "Squeak[0-9]\.[0-9]\-[0-9]+\.zip" | sed -E 's/.*(Squeak.*\.zip)/\1/p' | sort | tail -1`
     # parse the file extension from the filename
-    IMAGE_FILE_EXTENSION=`echo $IMAGE_FILE_NAME | sed -E 's/.*\.([a-zA-Z0-9]+)/\1/p'`
-    IMAGE_BASE_NAME=`echo $IMAGE_FILE_NAME | sed -E 's/(.*)\.${IMAGE_FILE_EXTENSION}/\1/p'`
+    IMAGE_FILE_EXTENSION=`echo $IMAGE_FILE_NAME | sed -nE 's/.*\.([a-zA-Z0-9]+)/\1/p'`
+    IMAGE_BASE_NAME=`echo $IMAGE_FILE_NAME | sed -nE "s/(.*)\.[a-zA-Z0-9]+/\1/p"`
     rm -f ftp_ls.log
 
     echo "downloading image: ${IMAGE_DIRECTORY_URL}${IMAGE_FILE_NAME}"
