@@ -58,7 +58,7 @@ EOF
     
     echo "found the following files on the ftp server: "
     cat ftp_ls.log
-
+    echo sed --version
     # parse the file name of the most recent build from the ftp ls output
     IMAGE_FILE_NAME=`cat ftp_ls.log | grep -r "Squeak[0-9]\.[0-9]\-[0-9]+\.zip" | sed -r 's/.*(Squeak.*\.zip)/\1/p' | sort | tail -1`
     # parse the file extension from the filename
