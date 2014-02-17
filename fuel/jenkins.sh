@@ -42,8 +42,8 @@ else
     fi
     IMAGE_DIRECTORY_URL="${IMAGE_FTP_HOST}/${IMAGE_DIRECTORY}/"
     
-    # -i: no interactive prompt, -n don't ask for login
-    ftp -in "$IMAGE_FTP_HOST" << EOF
+    # -i: no interactive prompt, -n don't ask for login, -p enforces passive mode
+    ftp -ipn "$IMAGE_FTP_HOST" << EOF
     user anonymous pharo-fuel@lists.gforge.inria.fr
     cd "$IMAGE_DIRECTORY"
     ls . ftp_ls.log
