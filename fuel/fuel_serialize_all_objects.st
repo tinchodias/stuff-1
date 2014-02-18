@@ -1,3 +1,4 @@
+| ignoredClasses ignoredPrefixes ignoredClassNameStrings classes objecta analyzer filename |
 ignoredClasses := { MethodContext }.
 ignoredPrefixes := #( 'FL' ).
 ignoredClassNameStrings := #( 'Mock' ).

@@ -1,3 +1,4 @@
+| o |
 o := Object withAllSubclasses collect: [ :class | class allInstances at: 1 ifAbsent: [ 
 	(class canUnderstand: #basicNew:)
 		ifTrue: [ [ [ class basicNew: 2 ]
