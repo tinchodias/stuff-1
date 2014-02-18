@@ -120,7 +120,7 @@ fi
 echo "generating script to serialize all instances"
 echo "[ [" > "init_script.st"
 cat fuel_serialize_all_objects.st >> "init_script.st"
-echo " ] on: Error do: [ :ex | ex serializeToFileNamed: 'exception_serializing_instances.fuel' ] ]" >> "init_script.st"
+echo " ] on: Error do: [ :ex | ex serializeToFileNamed: 'exception_serializing_instances.fuel' ] on: Error do: [] ]" >> "init_script.st"
 echo " ensure: [ Smalltalk snapshot: false andQuit: true ]." >> "init_script.st"
 
 echo "running serialization of all instances"
@@ -130,7 +130,7 @@ bash -c "$RUN"
 echo "generating script to serialize everything"
 echo "[ [ " > "init_script.st"
 cat fuel_serialize_everything.st >> "init_script.st"
-echo " ] on: Error do: [ :ex | ex serializeToFileNamed: 'exception_serializing_everything.fuel' ] ]" >> "init_script.st"
+echo " ] on: Error do: [ :ex | ex serializeToFileNamed: 'exception_serializing_everything.fuel' ] on: Error do: [] ]" >> "init_script.st"
 echo " ensure: [ Smalltalk snapshot: false andQuit: true ]." >> "init_script.st"
 
 echo "running serialization of everything"
