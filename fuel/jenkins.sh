@@ -111,13 +111,13 @@ EOF
     cat <<EOF > init_script.st
 
 "load HudsonBuildTools and run tests"
-[ ((Smalltalk at: #Installer) monticello http: 'http://smalltalkhub.com/mc/Pharo/Fuel/') 
+[ [ ((Smalltalk at: #Installer) monticello http: 'http://smalltalkhub.com/mc/Pharo/Fuel/') 
 	project: 'main';
 	package: 'HudsonBuildTools20';
 	install.
 	
-HDTestReport runPackage: 'FuelTests'. ] on: Error do: [ :ex | Smalltalk dumpException: ex ].
-Smalltalk snapshot: false andQuit: true.
+HDTestReport runPackage: 'FuelTests'. ] on: Error do: [ :ex | Smalltalk dumpException: ex ] ] ensure: [.
+Smalltalk snapshot: false andQuit: true ].
 EOF
     
     # run the tests

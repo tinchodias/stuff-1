@@ -111,25 +111,30 @@ fi
 
 wget --quiet -N https://raw2.github.com/theseion/stuff/master/fuel/fuel_serialize_all_objects.st
 wget --quiet -N https://raw2.github.com/theseion/stuff/master/fuel/fuel_serialize_everything.st
+if [[ "$SYSTEM" == "pharo"* ]]; then
+    RUN="./pharo ${JOB_NAME}.image init_script.st"
+else
+    RUN="./coglinux/squeak -headless ${JOB_NAME}.image init_script.st"
+fi
 # serialize all instances
 echo "generating script to serialize all instances"
 echo "[ [" > "init_script.st"
 cat fuel_serialize_all_objects.st >> "init_script.st"
-echo " ] on: Error do: [ :ex | ex serializeToFilenName: 'exception_serializing_instances.fuel' ] ]" >> "init_script.st"
-echo " ensure: [ Smalltalk snapshot: true andQuit: false ]." >> "init_script.st"
+echo " ] on: Error do: [ :ex | ex serializeToFileNamed: 'exception_serializing_instances.fuel' ] ]" >> "init_script.st"
+echo " ensure: [ Smalltalk snapshot: false andQuit: true ]." >> "init_script.st"
 
 echo "running serialization of all instances"
-./coglinux/squeak -headless "${JOB_NAME}.image" "init_script.st"
+bash -c "$RUN"
 
 # serialize everything
 echo "generating script to serialize everything"
 echo "[ [ " > "init_script.st"
 cat fuel_serialize_everything.st >> "init_script.st"
-echo " ] on: Error do: [ :ex | ex serializeToFilenName: 'exception_serializing_everything.fuel' ] ]" >> "init_script.st"
-echo " ensure: [ Smalltalk snapshot: true andQuit: false ]." >> "init_script.st"
+echo " ] on: Error do: [ :ex | ex serializeToFileNamed: 'exception_serializing_everything.fuel' ] ]" >> "init_script.st"
+echo " ensure: [ Smalltalk snapshot: false andQuit: true ]." >> "init_script.st"
 
 echo "running serialization of everything"
-./coglinux/squeak -headless "${JOB_NAME}.image" "init_script.st"
+bash -c "$RUN"
     
 zip -r $JOB_NAME.zip $JOB_NAME.image $JOB_NAME.changes
 
