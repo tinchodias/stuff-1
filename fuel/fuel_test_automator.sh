@@ -52,32 +52,27 @@ function prepare_final_script(){
 	
 	if [ $SERIALIZE_MATERIALIZE = 0 ]; then
 		cat "$TEST_RUNNER_SCRIPT" >> "$FINAL_SCRIPT"
-	else		
-		echo "\n" >> "$FINAL_SCRIPT\c"
-		
+    else
 		echo "Smalltalk at: #FuelFormatTestScriptsPath put: '$IMAGE_PATH'." >> "$FINAL_SCRIPT"
-		echo "\n" >> "$FINAL_SCRIPT\c"
 		
 		echo "Smalltalk at: #FuelFormatTestImageNames put: #(" >> "$FINAL_SCRIPT"
-		for image in ${PHARO_IMAGES_COG_VM[@]}; do
-			echo "'${image}' " >> "$FINAL_SCRIPT"
+		for image_name in ${PHARO_IMAGES_COG_VM[@]}; do
+			echo "'${image_name}' " >> "$FINAL_SCRIPT"
 		done
-		for image in ${PHARO_IMAGES_PHARO_VM[@]}; do
-			echo "'${image}' " >> "$FINAL_SCRIPT"
+		for image_name in ${PHARO_IMAGES_PHARO_VM[@]}; do
+			echo "'${image_name}' " >> "$FINAL_SCRIPT"
 		done
-		for image in ${SQUEAK_IMAGES_STACK_VM[@]}; do
-			echo "'${image}' " >> "$FINAL_SCRIPT"
+		for image_name in ${SQUEAK_IMAGES_STACK_VM[@]}; do
+			echo "'${image_name}' " >> "$FINAL_SCRIPT"
 		done
-		for image in ${SQUEAK_IMAGES_COG_VM[@]}; do
-			echo "'${image}' " >> "$FINAL_SCRIPT"
+		for image_name in ${SQUEAK_IMAGES_COG_VM[@]}; do
+			echo "'${image_name}' " >> "$FINAL_SCRIPT"
 		done
-		echo ").\n" >> "$FINAL_SCRIPT\c"
+		echo ")." >> "$FINAL_SCRIPT"
 		
 		echo "Smalltalk at: #FuelFormatTestFilename put: '$IMAGE_NAME.fuel'." >> "$FINAL_SCRIPT"
-		echo "\n" >> "$FINAL_SCRIPT\c"
 		
 		cat "$SERIALIZATION_SCRIPT" >> "$FINAL_SCRIPT"
-		echo "\n" >> "$FINAL_SCRIPT\c"
 		
 		cat "$MATERIALIZATION_SCRIPT" >> "$FINAL_SCRIPT"
 	fi
@@ -119,19 +114,19 @@ else
 	echo "running all tests"
 fi
 
-#pharo cog
-for image in ${PHARO_IMAGES_COG_VM[@]}; do
-	prepare_final_script ${image}
-	echo "running $COG_VM $IMAGE_PATH/${image}/${image}.image $FINAL_SCRIPT"
-	exec "$COG_VM" "$IMAGE_PATH/${image}/${image}.image" "$FINAL_SCRIPT" &
-done
-
-#pharo vm
-for image in ${PHARO_IMAGES_PHARO_VM[@]}; do
-	prepare_final_script ${image}
-	echo "running $PHARO_VM $IMAGE_PATH/${image}/${image}.image $FINAL_SCRIPT"
-	exec "$PHARO_VM" "$IMAGE_PATH/${image}/${image}.image" "$FINAL_SCRIPT" &
-done
+# #pharo cog
+# for image in ${PHARO_IMAGES_COG_VM[@]}; do
+#     prepare_final_script ${image}
+#     echo "running $COG_VM $IMAGE_PATH/${image}/${image}.image $FINAL_SCRIPT"
+#     exec "$COG_VM" "$IMAGE_PATH/${image}/${image}.image" "$FINAL_SCRIPT" &
+# done
+# 
+# #pharo vm
+# for image in ${PHARO_IMAGES_PHARO_VM[@]}; do
+#     prepare_final_script ${image}
+#     echo "running $PHARO_VM $IMAGE_PATH/${image}/${image}.image $FINAL_SCRIPT"
+#     exec "$PHARO_VM" "$IMAGE_PATH/${image}/${image}.image" "$FINAL_SCRIPT" &
+# done
 
 #squeak stack
 for image in ${SQUEAK_IMAGES_STACK_VM[@]}; do
@@ -140,11 +135,11 @@ for image in ${SQUEAK_IMAGES_STACK_VM[@]}; do
 	exec "$STACK_VM" "$IMAGE_PATH/${image}/${image}.image" "$FINAL_SCRIPT" &
 done
 
-#squeak cog
-for image in ${SQUEAK_IMAGES_COG_VM[@]}; do
-	prepare_final_script ${image}
-	echo "running $COG_VM $IMAGE_PATH/${image}/${image}.image $FINAL_SCRIPT"
-	exec "$COG_VM" "$IMAGE_PATH/${image}/${image}.image" "$FINAL_SCRIPT" &
-done
+# #squeak cog
+# for image in ${SQUEAK_IMAGES_COG_VM[@]}; do
+#     prepare_final_script ${image}
+#     echo "running $COG_VM $IMAGE_PATH/${image}/${image}.image $FINAL_SCRIPT"
+#     exec "$COG_VM" "$IMAGE_PATH/${image}/${image}.image" "$FINAL_SCRIPT" &
+# done
 
 exit 0

@@ -1,4 +1,4 @@
-| ignoredClasses ignoredPrefixes ignoredClassNameStrings classes objecta analyzer filename |
+[ | ignoredClasses ignoredPrefixes ignoredClassNameStrings classes objects analyzer filename |
 ignoredClasses := { MethodContext }.
 ignoredPrefixes := #( 'FL' ).
 ignoredClassNameStrings := #( 'Mock' ).
@@ -50,5 +50,5 @@ Smalltalk globals
 			do: [ :stream |
 				FLSerializer newDefault
 					analyzer: analyzer;
-					serialize: classes -> objects on: stream binary ] ].
+					serialize: classes -> objects on: stream binary ] ] ] value.
 					
