@@ -79,7 +79,7 @@ EOF
     echo "generating init_script.st"
     cat <<EOF > init_script.st
 "fix Installer for Smalltalkhub"
-[ (Smalltalk hasClassNamed: #InstallerInternetBased) ifTrue: [
+[ [ (Smalltalk hasClassNamed: #InstallerInternetBased) ifTrue: [
 	Utilities setAuthorInitials: 'foo'.
 	(Smalltalk classNamed: #InstallerInternetBased) compile: 'urlGet: aUrl
 
@@ -101,7 +101,7 @@ EOF
     else
         echo "load." >> "init_script.st"
     fi
-    echo "] on: Error do: [ :ex | Smalltalk dumpException: ex ]. Smalltalk snapshot: true andQuit: true." >> init_script.st
+    echo "] on: Error do: [ :ex | Smalltalk dumpException: ex ] ] ensure: [ Smalltalk snapshot: true andQuit: true ]." >> init_script.st
     
     # build the image
     echo "building image"

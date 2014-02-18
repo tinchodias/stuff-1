@@ -77,7 +77,7 @@ EOF
     echo "generating init_script.st"
     cat <<EOF > init_script.st
 "fix Installer for Smalltalkhub"
-[ (Smalltalk hasClassNamed: #InstallerInternetBased) ifTrue: [
+[ [ (Smalltalk hasClassNamed: #InstallerInternetBased) ifTrue: [
 	Utilities setAuthorInitials: 'foo'.
 	(Smalltalk classNamed: #InstallerInternetBased) compile: 'urlGet: aUrl
 
@@ -99,7 +99,7 @@ EOF
     else
         echo "load." >> "init_script.st"
     fi
-    echo "] on: Error do: [ :ex | Smalltalk dumpException: ex ]. Smalltalk snapshot: true andQuit: true." >> init_script.st
+    echo "] on: Error do: [ :ex | Smalltalk dumpException: ex ] ] ensure: [ Smalltalk snapshot: true andQuit: true ]." >> init_script.st
     
     # build the image
     echo "building image"
@@ -113,18 +113,20 @@ wget --quiet -N https://raw2.github.com/theseion/stuff/master/fuel/fuel_serializ
 wget --quiet -N https://raw2.github.com/theseion/stuff/master/fuel/fuel_serialize_everything.st
 # serialize all instances
 echo "generating script to serialize all instances"
-echo "[ " > "init_script.st"
+echo "[ [" > "init_script.st"
 cat fuel_serialize_all_objects.st >> "init_script.st"
-echo " ] on: Error do: [ :ex | ex serializeToFilenName: 'exception_serializing_instances.fuel' ]. Smalltalk snapshot: true andQuit: false." >> "init_script.st"
+echo " ] on: Error do: [ :ex | ex serializeToFilenName: 'exception_serializing_instances.fuel' ] ]"
+echo " ensure: [ Smalltalk snapshot: true andQuit: false ]." >> "init_script.st"
 
 echo "running serialization of all instances"
 ./coglinux/squeak -headless "${JOB_NAME}.image" "init_script.st"
 
 # serialize everything
 echo "generating script to serialize everything"
-echo "[ " > "init_script.st"
+echo "[ [ " > "init_script.st"
 cat fuel_serialize_everything.st >> "init_script.st"
-echo " ] on: Error do: [ :ex | ex serializeToFilenName: 'exception_serializing_everything.fuel' ]. Smalltalk snapshot: true andQuit: false." >> "init_script.st"
+echo " ] on: Error do: [ :ex | ex serializeToFilenName: 'exception_serializing_everything.fuel' ] ]"
+echo " ensure: [ Smalltalk snapshot: true andQuit: false ]." >> "init_script.st"
 
 echo "running serialization of everything"
 ./coglinux/squeak -headless "${JOB_NAME}.image" "init_script.st"
