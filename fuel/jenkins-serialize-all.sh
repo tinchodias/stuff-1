@@ -132,3 +132,7 @@ echo "running serialization of everything"
 ./coglinux/squeak -headless "${JOB_NAME}.image" "init_script.st"
     
 zip -r $JOB_NAME.zip $JOB_NAME.image $JOB_NAME.changes
+
+if [ -e "exception_serializing_everything.fuel" -o -e "exception_serializing_instances.fuel" -o -e "SqueakDebug.log" -o -e "PharoDebug.log" ]; then
+    exit 1
+fi

@@ -128,3 +128,7 @@ EOF
 fi
     
 zip -r $JOB_NAME.zip $JOB_NAME.image $JOB_NAME.changes
+
+if [ -e "SqueakDebug.log" ]; then
+    exit 1
+fi
