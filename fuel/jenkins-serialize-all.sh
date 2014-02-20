@@ -53,6 +53,11 @@ cd "$IMAGE_DIRECTORY"
 ls . ftp_ls.log
 quit
 EOF
+
+    if [ ! -e "ftp_ls.log"]; then
+        echo "could not connect to ftp server. Ignoring build failure."
+        exit 0
+    fi
     
     echo "found the following files on the ftp server: "
     cat ftp_ls.log
