@@ -114,7 +114,7 @@ EOF
 fi
 
 
-wget --quiet -N https://raw2.github.com/theseion/stuff/master/fuel/fuel_serialize_all_objects.st
+wget --quiet -N https://github.com/theseion/stuff/raw/master/fuel/fuel_serialize_materialize_everything.st
 if [[ "$SYSTEM" == "pharo"* ]]; then
     RUN="./pharo ${JOB_NAME}.image init_script.st"
 else
