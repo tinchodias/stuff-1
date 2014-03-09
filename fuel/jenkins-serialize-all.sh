@@ -115,7 +115,6 @@ fi
 
 
 wget --quiet -N https://raw2.github.com/theseion/stuff/master/fuel/fuel_serialize_all_objects.st
-wget --quiet -N https://raw2.github.com/theseion/stuff/master/fuel/fuel_serialize_everything.st
 if [[ "$SYSTEM" == "pharo"* ]]; then
     RUN="./pharo ${JOB_NAME}.image init_script.st"
 else
@@ -129,16 +128,6 @@ echo " ] on: Error do: [ :ex | ex serializeToFileNamed: 'exception_serializing_i
 echo " ensure: [ Smalltalk snapshot: false andQuit: true ]." >> "init_script.st"
 
 echo "running serialization of all instances"
-bash -c "$RUN"
-
-# serialize everything
-echo "generating script to serialize everything"
-echo "[ [ " > "init_script.st"
-cat fuel_serialize_everything.st >> "init_script.st"
-echo " ] on: Error do: [ :ex | ex serializeToFileNamed: 'exception_serializing_everything.fuel' ] on: Error do: [] ]" >> "init_script.st"
-echo " ensure: [ Smalltalk snapshot: false andQuit: true ]." >> "init_script.st"
-
-echo "running serialization of everything"
 bash -c "$RUN"
     
 zip -r $JOB_NAME.zip $JOB_NAME.image $JOB_NAME.changes
