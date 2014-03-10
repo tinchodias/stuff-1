@@ -12,6 +12,7 @@ analyzer := FLAnalyzer newDefault.
 				ifTrue: [ #ensureCreateDirectory ]
 				ifFalse: [ #ensureDirectory "Pharo2.0" ]) ].
 	instances := class allInstances.
+	instances := instances copyWithoutAll: Smalltalk specialObjectsArray.
 	instances size > 2 ifTrue: [ instances := instances first: 2 ].
 	filename := class name, '_', instances size asString, '_instances_.fueltest'.
 
