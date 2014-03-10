@@ -122,9 +122,9 @@ else
 fi
 # serialize all instances
 echo "generating script to serialize all instances"
-echo "[ [" > "init_script.st"
-cat fuel_serialize_all_objects.st >> "init_script.st"
-echo " ] on: Error do: [ :ex | ex serializeToFileNamed: 'exception_serializing_instances.fuel' ] on: Error do: [] ]" >> "init_script.st"
+echo "[ [ [" > "init_script.st"
+cat fuel_serialize_materialize_everything.st >> "init_script.st"
+echo " ] on: Error do: [ :ex | ex serializeToFileNamed: 'exception_serializing_everything.fuel' ] ] on: Error do: [] ]" >> "init_script.st"
 echo " ensure: [ Smalltalk snapshot: false andQuit: true ]." >> "init_script.st"
 
 echo "running serialization of all instances"
@@ -132,6 +132,6 @@ bash -c "$RUN"
     
 zip -r $JOB_NAME.zip $JOB_NAME.image $JOB_NAME.changes
 
-if [ -e "exception_serializing_everything.fuel" -o -e "exception_serializing_instances.fuel" -o -e "SqueakDebug.log" -o -e "PharoDebug.log" ]; then
+if [ -e "exception_serializing_everything.fuel" -o -e "SqueakDebug.log" -o -e "PharoDebug.log" ]; then
     exit 1
 fi
