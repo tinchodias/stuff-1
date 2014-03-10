@@ -1,12 +1,16 @@
-(FileSystem disk workingDirectory / 'serialization.log') writeStreamDo: [ :log |
+(FileSystem disk workingDirectory / 'serialization.log') writeStreamDo: [ :log || analyzer |
 Object withAllSubclasses do: [ :class | 
 	3 timesRepeat: [Smalltalk garbageCollect].
 analyzer := FLAnalyzer newDefault.
 
-[ | instances scriptsDirectory |
+[ | instances scriptsDirectory filename |
 	scriptsDirectory := Smalltalk globals at: #FileDirectory
 		ifPresent: [ :fileDirectory | (fileDirectory default / 'serialized') assureExistence ]
-		ifAbsent: [ ((Smalltalk at: #FileSystem) workingDirectory / 'serialized') ensureCreateDirectory ].
+		ifAbsent: [ | ref | 
+			ref := ((Smalltalk at: #FileSystem) workingDirectory / 'serialized').
+			ref perform: ((ref class canUnderstand: #ensureCreateDirectory)
+				ifTrue: [ #ensureCreateDirectory ]
+				ifFalse: [ #ensureDirectory "Pharo2.0" ]) ].
 	instances := class allInstances.
 	instances size > 2 ifTrue: [ instances := instances first: 2 ].
 	filename := class name, '_', instances size asString, '_instances_.fueltest'.
