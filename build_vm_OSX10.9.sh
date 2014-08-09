@@ -1,0 +1,136 @@
+#!/bin/bash
+
+sw_vers -productVersion | grep 10.9 &> /dev/null
+
+if [ ! ${?} ]; then
+	echo "Exiting! This script was written SPECIFICALLY for OS X 10.9. You're running $(sw_vers -productVersion)."
+	exit 1
+fi
+
+if [ -z "${1}" ]; then
+	echo "Exiting! Please tell me where the pharo-vm directory is."
+	exit 2
+fi
+
+ROOT=${1}
+
+function fix_sources() {
+	prev=$(pwd)
+	cd ${ROOT}/image
+	# - remove deprecated compiler flags
+	# - enable debug mode for debugging with XCode
+	src=$(cat <<EOF
+Author fullName: 'bash'.
+CogUnixConfig compile: 'compilerFlagsRelease
+	^ {
+		''-g0''. 
+		''-O2''.
+		''-msse2''. 
+		''-D_GNU_SOURCE''. 
+		''-DNDEBUG''. 
+		''-DITIMER_HEARTBEAT=1''. 
+		''-DNO_VM_PROFILE=1''. 
+		''-DDEBUGVM=0'' }'.
+PharoVMBuilder compile: 'buildMacOSX32 
+	"Build with freetype, cairo, osprocess"
+	CogNativeBoostPlugin setTargetPlatform: #Mac32PlatformId.
+	
+	PharoOSXConfig new  
+		generateForDebug;
+		addExternalPlugins: #( FT2Plugin );
+		addInternalPlugins: #( UnixOSProcessPlugin );
+		addThirdpartyLibraries: #(
+			''cairo'' 
+			''libgit2''
+			''libssh2'');
+		generateSources; 
+		generate.'.
+Smalltalk snapshot: true andQuit: true.
+EOF)
+	./pharo generator.image eval ${src}
+	
+	update_libgit2
+	cd ${prev}
+}
+
+function update_libgit2() {
+	src=$(cat <<EOF
+CMLibGit2 compile: 'downloadURL
+	^ ''http://github.com/libgit2/libgit2/archive/v0.21.1.tar.gz'''.
+CMLibGit2 compile: 'unpackedDirName
+	^ ''libgit2-0.21.1'''.
+CMOSXLibGit2 compile: 'libraryFileName
+	^ ''libgit2.0.21.0.dylib'''.
+CMLibGit2 compile: 'archiveMD5Sum
+	^ ''cbf3422d54dd6f55f09855a6eb749f41'''.
+Smalltalk snapshot: true andQuit: true.
+EOF)
+	./pharo generator.image eval ${src}
+}
+
+# install dependencies
+which brew &>/dev/null
+if [ ! ${?} ]; then
+	echo "homebrew not installed. Aborting..."
+	exit 3
+else
+	brew list | grep cmake &>/dev/null
+	if [ ! ${?} ]; then
+		brew install cmake
+	fi
+	brew list | grep wget &>/dev/null
+	if [ ! ${?} ]; then
+		brew install wget
+	fi
+	brew list | grep git &>/dev/null
+	if [ ! ${?} ]; then
+		brew install git
+	fi
+fi
+
+if [ ! -e /Applications/Xcode.app ]; then
+	echo "Exiting! You don't have XCode. Please go and get that first."
+	exit 4
+fi
+
+# install MacOSX10.6 SDK
+if [ ! -e /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6.sdk ]; then
+	sudo cd /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs &&
+		sudo wget http://files.pharo.org/vm/src/lib/MacOSX10.6.sdk.zip &&
+		sudo unzip MacOSX10.6.sdk.zip &&
+		sudo rm MacOSX10.6.sdk.zip
+fi
+
+
+cd ${ROOT}
+echo "Cleaning up from possible previous builds..."
+rm -rf build
+rm -rf src
+rm -rf results
+rm -rf image
+git checkout build
+git checkout results
+git checkout image
+# ensure git repo is clean
+git reset --hard HEAD
+echo "Updating pharo-vm repository..."
+git pull
+cd image
+echo "Getting a new generator image..."
+./newImage.sh
+echo "Fixing generated sources for OS X..."
+fix_sources
+echo "Generating sources..."
+./pharo generator.image eval "PharoVMBuilder buildMacOSX32."
+cd ../build
+# fixes problems with OpenGL dependencies on OS X 1.9
+sed -i "" 's-//#import <OpenGL/CGLMacro.h>-#import <OpenGL/GL.h>-' ../platforms/iOS/vm/OSX/sqSqueakOSXOpenGLView.m
+"Building VM..."
+bash build.sh
+if [ ! ${?} ]; then
+	echo "Build process exited with error. Aborting..."
+	exit 5
+fi
+cd ${ROOT}
+
+echo "Successfully built the VM. It's located in ${ROOT}/results"
