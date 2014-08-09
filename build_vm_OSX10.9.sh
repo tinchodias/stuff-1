@@ -17,8 +17,14 @@ ROOT=${1}
 function fix_sources() {
 	prev=$(pwd)
 	cd ${ROOT}/image
-	# - remove deprecated compiler flags
-	# - enable debug mode for debugging with XCode
+	remove_deprecated_compiler_flags # do not comment this line. The build process will fail otherwise
+	enable_debugging # comment this line if you want a fast / normal VM
+	update_libgit2 # comment this line if you don't care about the libgit2 version
+	cd ${prev}
+}
+
+# VM won't build wihout this fix
+function remove_deprecated_compiler_flags() {
 	src=$(cat <<EOF
 Author fullName: 'bash'.
 CogUnixConfig compile: 'compilerFlagsRelease
@@ -31,28 +37,12 @@ CogUnixConfig compile: 'compilerFlagsRelease
 		''-DITIMER_HEARTBEAT=1''. 
 		''-DNO_VM_PROFILE=1''. 
 		''-DDEBUGVM=0'' }'.
-PharoVMBuilder compile: 'buildMacOSX32 
-	"Build with freetype, cairo, osprocess"
-	CogNativeBoostPlugin setTargetPlatform: #Mac32PlatformId.
-	
-	PharoOSXConfig new  
-		generateForDebug;
-		addExternalPlugins: #( FT2Plugin );
-		addInternalPlugins: #( UnixOSProcessPlugin );
-		addThirdpartyLibraries: #(
-			''cairo'' 
-			''libgit2''
-			''libssh2'');
-		generateSources; 
-		generate.'.
 Smalltalk snapshot: true andQuit: true.
 EOF)
 	./pharo generator.image eval ${src}
-	
-	update_libgit2
-	cd ${prev}
 }
 
+# for libgit2 development
 function update_libgit2() {
 	src=$(cat <<EOF
 CMLibGit2 compile: 'downloadURL
@@ -63,6 +53,28 @@ CMOSXLibGit2 compile: 'libraryFileName
 	^ ''libgit2.0.21.0.dylib'''.
 CMLibGit2 compile: 'archiveMD5Sum
 	^ ''cbf3422d54dd6f55f09855a6eb749f41'''.
+Smalltalk snapshot: true andQuit: true.
+EOF)
+	./pharo generator.image eval ${src}
+}
+
+# enable debugging with XCode
+function enable_debugging() {
+	src=$(cat <<EOF
+PharoVMBuilder compile: 'buildMacOSX32 
+	"Build with freetype, cairo, osprocess"
+	CogNativeBoostPlugin setTargetPlatform: #Mac32PlatformId.
+
+	PharoOSXConfig new  
+		generateForDebug;
+		addExternalPlugins: #( FT2Plugin );
+		addInternalPlugins: #( UnixOSProcessPlugin );
+		addThirdpartyLibraries: #(
+			''cairo'' 
+			''libgit2''
+			''libssh2'');
+		generateSources; 
+		generate.'.
 Smalltalk snapshot: true andQuit: true.
 EOF)
 	./pharo generator.image eval ${src}
