@@ -47,6 +47,21 @@ function update_libgit2() {
 	src=$(cat <<EOF
 CMLibGit2 compile: 'downloadURL
 	^ ''http://github.com/libgit2/libgit2/archive/v0.21.1.tar.gz'''.
+CMLibGit2 compile: 'build
+
+	gen 
+		puts:
+''
+add_custom_command(OUTPUT "\${libGit2Installed}"
+	COMMAND cmake -UGIT_THREADS -DCMAKE_INSTALL_PREFIX="\${installPrefix}" '', self configurationFlags, '' . 
+	WORKING_DIRECTORY "\${libSourcesDir}"
+	DEPENDS "\${unpackTarget}"
+	COMMAND make
+	COMMAND make install
+	WORKING_DIRECTORY "\${libSourcesDir}"
+	COMMENT "Building \${libName}"
+)
+'''.
 CMLibGit2 compile: 'unpackedDirName
 	^ ''libgit2-0.21.1'''.
 CMOSXLibGit2 compile: 'libraryFileName
@@ -78,6 +93,13 @@ PharoVMBuilder compile: 'buildMacOSX32
 Smalltalk snapshot: true andQuit: true.
 EOF)
 	./pharo generator.image eval ${src}
+}
+
+function create_xcode_project() {
+	../scripts/extract-commit-info.sh
+	rm -f CMakeCache.txt
+	cmake -G Xcode .
+	echo "Created XCode project at ${ROOT}/build/Pharo.xcodeproj."
 }
 
 # install dependencies
@@ -143,6 +165,8 @@ if [ ! ${?} ]; then
 	echo "Build process exited with error. Aborting..."
 	exit 5
 fi
+echo "Creating XCode project for VM debugging..."
+create_xcode_project
 cd ${ROOT}
 
 echo "Successfully built the VM. It's located in ${ROOT}/results"
