@@ -97,14 +97,15 @@ EOF)
 
 # libssh2 isn't linked correctly at the moment. rolling my own...
 function create_xcode_project() {
-	../scripts/extract-commit-info.sh
+	cd ${ROOT}
+	scripts/extract-commit-info.sh
+	cd build
 	rm -f CMakeCache.txt
 	cmake -G Xcode .
 	echo "Created XCode project at ${ROOT}/build/Pharo.xcodeproj."
 }
 
 function build_and_link_libssh2_32bit {
-	pev=$(pwd)
 	cd ${ROOT}
 	cd ..
 	
@@ -123,33 +124,38 @@ function build_and_link_libssh2_32bit {
 		if [ ! -e "libssh2" ]; then
 			git clone --depth 1 git://git.libssh2.org/libssh2.git
 		fi
-		flags=${CFLAGS}
-		export CFLAGS="${CFLAGS} -m32"
+		cflags=${CFLAGS}
+		ldflags=${LDFLAGS}
+		export CFLAGS="${CFLAGS} -m32 -g"
+		export CFLAGS="${LDFLAGS} -m32 -g"
 		cd libssh2
 		./buildconf
 		if [ ! ${?} -eq 0 ]; then
 			echo "could not generate configure script for libssh2. Aborting..."
 			export CFLAGS="${flags}"
+			export LDFLAGS="${ldflags}"
 			exit 5
 		fi
 		./configure
 		if [ ! ${?} -eq 0 ]; then
 			echo "there was an error during the configuration run of libssh2. Aborting..."
 			export CFLAGS="${flags}"
+			export LDFLAGS="${ldflags}"
 			exit 6
 		fi
 		make
 		if [ ! ${?} -eq 0 ]; then
 			echo "there was an error building libssh2. Aborting..."
 			export CFLAGS="${flags}"
+			export LDFLAGS="${ldflags}"
 			exit 7
 		fi
 		export CFLAGS="${flags}"
+		export LDFLAGS="${ldflags}"
 	fi
 	echo "linking libssh2..."
 	rm -f ${ROOT}/results/Pharo.app/Contents/MacOS/Plugins/libssh2.dylib
-	ln -s $(pwd)/src/.libs/libssh2.dylib ${ROOT}/results/Pharo.app/Contents/MacOS/Plugins/
-	cd ${prev}
+	ln -s ${ROOT}/libssh2/src/.libs/libssh2.dylib ${ROOT}/results/Pharo.app/Contents/MacOS/Plugins/
 }
 
 # install dependencies
@@ -209,7 +215,16 @@ echo "Generating sources..."
 cd ../build
 # fixes problems with OpenGL dependencies on OS X 1.9
 sed -i "" 's-//#import <OpenGL/CGLMacro.h>-#import <OpenGL/GL.h>-' ../platforms/iOS/vm/OSX/sqSqueakOSXOpenGLView.m
-"Building VM..."
+echo "Building VM..."
+# make sure libgit does not uses absolute paths for libssh2 lookup
+mkdir -p /usr/local/lib
+mkdir -p /usr/local/include
+cd $ROOT
+cd ..
+ln -s $(pwd)/libssh2/src/.libs/libssh2.dylib /usr/local/lib/libssh2.1.dylib
+ln -s $(pwd)/libssh2/include/libssh2.h /usr/local/include
+
+cd ${ROOT}/build
 bash build.sh
 if [ ! ${?} -eq 0 ]; then
 	echo "Build process exited with error. Aborting..."
