@@ -2,7 +2,7 @@
 
 sw_vers -productVersion | grep 10.9 &> /dev/null
 
-if [ ! ${?} ]; then
+if [ ! ${?} -eq 0 ]; then
 	echo "Exiting! This script was written SPECIFICALLY for OS X 10.9. You're running $(sw_vers -productVersion)."
 	exit 1
 fi
@@ -95,6 +95,7 @@ EOF)
 	./pharo generator.image eval ${src}
 }
 
+# libssh2 isn't linked correctly at the moment. rolling my own...
 function create_xcode_project() {
 	../scripts/extract-commit-info.sh
 	rm -f CMakeCache.txt
@@ -102,22 +103,71 @@ function create_xcode_project() {
 	echo "Created XCode project at ${ROOT}/build/Pharo.xcodeproj."
 }
 
+function build_and_link_libssh2_32bit {
+	pev=$(pwd)
+	cd ${ROOT}
+	cd ..
+	
+	if [ ! -e "libssh2/src/.libs/libssh2.dylib" ]; then
+		which autoconf &>/dev/null
+		if [ ! ${?} -eq 0 ]; then
+			echo "installing Autoconf..."
+			brew install autoconf
+		fi
+		which automake &>/dev/null
+		if [ ! ${?} -eq 0 ]; then
+			echo "installing Automake..."
+			brew install automake
+		fi
+	
+		if [ ! -e "libssh2" ]; then
+			git clone --depth 1 git://git.libssh2.org/libssh2.git
+		fi
+		flags=${CFLAGS}
+		export CFLAGS="${CFLAGS} -m32"
+		cd libssh2
+		./buildconf
+		if [ ! ${?} -eq 0 ]; then
+			echo "could not generate configure script for libssh2. Aborting..."
+			export CFLAGS="${flags}"
+			exit 5
+		fi
+		./configure
+		if [ ! ${?} -eq 0 ]; then
+			echo "there was an error during the configuration run of libssh2. Aborting..."
+			export CFLAGS="${flags}"
+			exit 6
+		fi
+		make
+		if [ ! ${?} -eq 0 ]; then
+			echo "there was an error building libssh2. Aborting..."
+			export CFLAGS="${flags}"
+			exit 7
+		fi
+		export CFLAGS="${flags}"
+	fi
+	echo "linking libssh2..."
+	rm -f ${ROOT}/results/Pharo.app/Contents/MacOS/Plugins/libssh2.dylib
+	ln -s $(pwd)/src/.libs/libssh2.dylib ${ROOT}/results/Pharo.app/Contents/MacOS/Plugins/
+	cd ${prev}
+}
+
 # install dependencies
 which brew &>/dev/null
-if [ ! ${?} ]; then
+if [ ! ${?} -eq 0 ]; then
 	echo "homebrew not installed. Aborting..."
 	exit 3
 else
 	brew list | grep cmake &>/dev/null
-	if [ ! ${?} ]; then
+	if [ ! ${?} -eq 0 ]; then
 		brew install cmake
 	fi
 	brew list | grep wget &>/dev/null
-	if [ ! ${?} ]; then
+	if [ ! ${?} -eq 0 ]; then
 		brew install wget
 	fi
 	brew list | grep git &>/dev/null
-	if [ ! ${?} ]; then
+	if [ ! ${?} -eq 0 ]; then
 		brew install git
 	fi
 fi
@@ -161,10 +211,11 @@ cd ../build
 sed -i "" 's-//#import <OpenGL/CGLMacro.h>-#import <OpenGL/GL.h>-' ../platforms/iOS/vm/OSX/sqSqueakOSXOpenGLView.m
 "Building VM..."
 bash build.sh
-if [ ! ${?} ]; then
+if [ ! ${?} -eq 0 ]; then
 	echo "Build process exited with error. Aborting..."
 	exit 5
 fi
+build_and_link_libssh2_32bit
 echo "Creating XCode project for VM debugging..."
 create_xcode_project
 cd ${ROOT}
