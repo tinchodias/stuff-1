@@ -1,4 +1,4 @@
-#!/bin/bash
+bin/bash
 
 sw_vers -productVersion | grep 10.9 &> /dev/null
 
@@ -18,7 +18,6 @@ function fix_sources() {
 	prev=$(pwd)
 	cd ${ROOT}/image
 	remove_deprecated_compiler_flags # do not comment this line. The build process will fail otherwise
-	#enable_debugging # comment this line if you want a fast / normal VM
 	update_libgit2 # comment this line if you don't care about the libgit2 version
 	cd ${prev}
 }
@@ -73,38 +72,7 @@ EOF)
 	./pharo generator.image eval ${src}
 }
 
-# enable debugging with XCode
-function enable_debugging() {
-	src=$(cat <<EOF
-PharoVMBuilder compile: 'buildMacOSX32 
-	"Build with freetype, cairo, osprocess"
-	CogNativeBoostPlugin setTargetPlatform: #Mac32PlatformId.
-
-	PharoOSXConfig new  
-		generateForDebug;
-		addExternalPlugins: #( FT2Plugin );
-		addInternalPlugins: #( UnixOSProcessPlugin );
-		addThirdpartyLibraries: #(
-			''cairo'' 
-			''libgit2''
-			''libssh2'');
-		generateSources; 
-		generate.'.
-Smalltalk snapshot: true andQuit: true.
-EOF)
-	./pharo generator.image eval ${src}
-}
-
 # libssh2 isn't linked correctly at the moment. rolling my own...
-function create_xcode_project() {
-	cd ${ROOT}
-	scripts/extract-commit-info.sh
-	cd build
-	rm -f CMakeCache.txt
-	cmake -G Xcode .
-	echo "Created XCode project at ${ROOT}/build/Pharo.xcodeproj."
-}
-
 function build_and_link_libssh2_32bit {
 	cd ${ROOT}
 	cd ..
@@ -231,8 +199,6 @@ if [ ! ${?} -eq 0 ]; then
 	exit 5
 fi
 build_and_link_libssh2_32bit
-echo "Creating XCode project for VM debugging..."
-create_xcode_project
 cd ${ROOT}
 
 echo "Successfully built the VM. It's located in ${ROOT}/results"

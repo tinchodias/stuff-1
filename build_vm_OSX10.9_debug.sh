@@ -95,7 +95,6 @@ EOF)
 	./pharo generator.image eval ${src}
 }
 
-# libssh2 isn't linked correctly at the moment. rolling my own...
 function create_xcode_project() {
 	cd ${ROOT}
 	scripts/extract-commit-info.sh
@@ -105,6 +104,7 @@ function create_xcode_project() {
 	echo "Created XCode project at ${ROOT}/build/Pharo.xcodeproj."
 }
 
+# libssh2 isn't linked correctly at the moment. rolling my own...
 function build_and_link_libssh2_32bit {
 	cd ${ROOT}
 	cd ..
