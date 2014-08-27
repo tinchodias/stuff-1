@@ -18,7 +18,7 @@ function fix_sources() {
 	prev=$(pwd)
 	cd ${ROOT}/image
 	remove_deprecated_compiler_flags # do not comment this line. The build process will fail otherwise
-	#enable_debugging # comment this line if you want a fast / normal VM
+	enable_debugging # comment this line if you want a fast / normal VM
 	update_libgit2 # comment this line if you don't care about the libgit2 version
 	cd ${prev}
 }
