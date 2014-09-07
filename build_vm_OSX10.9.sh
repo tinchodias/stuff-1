@@ -1,4 +1,4 @@
-bin/bash
+#!/bin/bash
 
 sw_vers -productVersion | grep 10.9 &> /dev/null
 
